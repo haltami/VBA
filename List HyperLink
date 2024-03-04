@@ -1,0 +1,18 @@
+Sub ListHyperlink()
+    Dim ws As Worksheet
+    Dim i As Integer
+    
+    ' Clear previous list
+    Range("C2:C" & Cells(Rows.Count, "C").End(xlUp).Row).ClearContents
+    
+    ' Loop through each worksheet
+    i = 2 ' Start from row 2
+    For Each ws In ThisWorkbook.Worksheets
+        If ws.Name <> ActiveSheet.Name Then ' Exclude active sheet
+            'Cells(i, 3).Value = ws.Name ' Write sheet name to column C
+            ws.Range("B1").Value = "=HYPERLINK(""#'" & ActiveSheet.Name & "'!A1""," & """" & ActiveSheet.Name & """)"
+            Cells(i, 3).Formula = "=HYPERLINK(""#'" & ws.Name & "'!B1"",LEFT(" & """" & ws.Name & """,2))"
+            i = i + 1 ' Move to the next row
+        End If
+    Next ws
+End Sub
