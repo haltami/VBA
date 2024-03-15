@@ -1,0 +1,34 @@
+Sub CombineWorkbooks()
+Dim wb As Workbook
+
+'Set wb = ThisWorkbook
+
+Dim Path As String
+'Path = "C:\Users\hecto\OneDrive\Desktop\Excel Dummy\Files\"
+Path = Range("B1").Value & "\"
+
+
+Dim FileName As String
+FileName = Dir(Path & "*.xlsx")
+
+Dim ws As Worksheet
+
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+
+Do While FileName <> ""
+    Workbooks.Open Path & FileName
+    For Each ws In ActiveWorkbook.Sheets
+        ws.Copy after:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count)
+    Next ws
+    Workbooks(FileName).Close
+    FileName = Dir()
+Loop
+
+'Worksheets(1).Delete
+
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+
+End Sub
+
