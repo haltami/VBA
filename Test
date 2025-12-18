@@ -1,82 +1,78 @@
-Sub FormatAndGroupSheet()
+Sub Format_And_Group_Sheet()
 
     Dim ws As Worksheet
-    Dim i As Long
-    Dim lastRow As Long
-    Dim Cb As Long
-    Dim Ct As Long
-    Dim searchStart As Long
-
     Set ws = ActiveSheet
+
+    Dim lastRow As Long
+    Dim i As Long
+    Dim Cb As Long, Ct As Long
+    Dim groupStart As Long
+    Dim cell As Range
 
     Application.ScreenUpdating = False
     Application.EnableEvents = False
 
-    '-----------------------------------
+    '--------------------------------------------------
     ' Freeze panes at row 8
-    '-----------------------------------
+    '--------------------------------------------------
     ws.Activate
     ws.Range("A8").Select
     ActiveWindow.FreezePanes = True
 
-    '-----------------------------------
-    ' Find last used row in Column A
-    '-----------------------------------
+    '--------------------------------------------------
+    ' Clear existing outlines
+    '--------------------------------------------------
+    ws.Rows.ClearOutline
+
+    '--------------------------------------------------
+    ' Loop through Column A to group sections
+    ' Group rows between:
+    ' (Balance forward + 1) and (Totals for - 1)
+    '--------------------------------------------------
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    Cb = 0
 
-    '-----------------------------------
-    ' Loop Column A and group sections
-    '-----------------------------------
-    searchStart = 1
-
-    Do While searchStart <= lastRow
-
-        Cb = 0
-        Ct = 0
-
-        ' Find "(Balance forward"
-        For i = searchStart To lastRow
-            If InStr(1, ws.Cells(i, "A").Value, "(Balance forward", vbTextCompare) > 0 Then
-                Cb = i
-                Exit For
+    For i = 1 To lastRow
+        If InStr(1, ws.Cells(i, "A").Value, "(Balance forward", vbTextCompare) > 0 Then
+            Cb = i
+        ElseIf InStr(1, ws.Cells(i, "A").Value, "Totals for", vbTextCompare) > 0 Then
+            Ct = i
+            If Cb > 0 And Ct > Cb + 1 Then
+                ws.Rows((Cb + 1) & ":" & (Ct - 1)).Group
             End If
-        Next i
-
-        If Cb = 0 Then Exit Do
-
-        ' Find "Totals for" after Balance forward
-        For i = Cb + 1 To lastRow
-            If InStr(1, ws.Cells(i, "A").Value, "Totals for", vbTextCompare) > 0 Then
-                Ct = i
-                Exit For
-            End If
-        Next i
-
-        If Ct > Cb + 1 Then
-            ws.Rows(Cb + 1 & ":" & Ct - 1).Group
+            Cb = 0
         End If
+    Next i
 
-        searchStart = Ct + 1
-
-    Loop
-
-    '-----------------------------------
-    ' Collapse all outline groups
-    '-----------------------------------
+    '--------------------------------------------------
+    ' Collapse all groups
+    '--------------------------------------------------
     ws.Outline.ShowLevels RowLevels:=1
 
-    '-----------------------------------
-    ' Apply comma style to columns
-    '-----------------------------------
-    ws.Columns("I:I").NumberFormat = "#,##0.00"
-    ws.Columns("J:J").NumberFormat = "#,##0.00"
-    ws.Columns("K:K").NumberFormat = "#,##0.00"
-    ws.Columns("O:O").NumberFormat = "#,##0.00"
+    '--------------------------------------------------
+    ' Apply Comma Style to Columns I, J, K, and O
+    '--------------------------------------------------
+    ws.Columns("I:K").Style = "Comma"
+    ws.Columns("O").Style = "Comma"
 
-    '-----------------------------------
-    ' Apply fill color to M1:M(LR)
-    '-----------------------------------
+    '--------------------------------------------------
+    ' Find last row with text in Column A
+    ' Apply fill color from M1 to M(lastRow)
+    '--------------------------------------------------
     ws.Range("M1:M" & lastRow).Interior.Color = -0.0999786370433668
+
+    '--------------------------------------------------
+    ' Locate specific "Totals for X" rows and label Column N
+    '--------------------------------------------------
+    For Each cell In ws.Range("A1:A" & lastRow)
+        If InStr(1, cell.Value, "Totals for 1", vbTextCompare) > 0 Then
+            ws.Cells(cell.Row, "N").Value = "Accounts Receivable:"
+        ElseIf InStr(1, cell.Value, "Totals for 2", vbTextCompare) > 0 Then
+            ws.Cells(cell.Row, "N").Value = "Accounts Receivable:"
+        ElseIf InStr(1, cell.Value, "Totals for 5", vbTextCompare) > 0 Then
+            ws.Cells(cell.Row, "N").Value = "Accounts Receivable:"
+        End If
+    Next cell
 
     Application.ScreenUpdating = True
     Application.EnableEvents = True
