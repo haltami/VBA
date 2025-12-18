@@ -1,61 +1,83 @@
 Sub FormatAndGroupSheet()
 
     Dim ws As Worksheet
-    Dim lastRow As Long
     Dim i As Long
-    
-    Dim Cb As Long ' Balance forward row
-    Dim Ct As Long ' Totals for row
-    
+    Dim lastRow As Long
+    Dim Cb As Long
+    Dim Ct As Long
+    Dim searchStart As Long
+
     Set ws = ActiveSheet
-    
+
     Application.ScreenUpdating = False
     Application.EnableEvents = False
-    
-    '----------------------------------------
+
+    '-----------------------------------
     ' Freeze panes at row 8
-    '----------------------------------------
+    '-----------------------------------
     ws.Activate
-    ws.Range("A9").Select   ' Freeze above row 9 = freeze at row 8
+    ws.Range("A8").Select
     ActiveWindow.FreezePanes = True
-    
-    '----------------------------------------
-    ' Determine last used row in column A
-    '----------------------------------------
+
+    '-----------------------------------
+    ' Find last used row in Column A
+    '-----------------------------------
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-    
-    ' Clear existing outlines to avoid conflicts
-    ws.Rows.ClearOutline
-    
-    Cb = 0
-    Ct = 0
-    
-    '----------------------------------------
-    ' Loop through column A
-    '----------------------------------------
-    For i = 1 To lastRow
-        
-        If InStr(1, ws.Cells(i, "A").Value, "(Balance forward", vbTextCompare) > 0 Then
-            Cb = i
-        End If
-        
-        If InStr(1, ws.Cells(i, "A").Value, "Totals for", vbTextCompare) > 0 Then
-            Ct = i
-        End If
-        
-        ' When both markers are found, group rows
-        If Cb > 0 And Ct > 0 And Ct > Cb + 1 Then
-            
+
+    '-----------------------------------
+    ' Loop Column A and group sections
+    '-----------------------------------
+    searchStart = 1
+
+    Do While searchStart <= lastRow
+
+        Cb = 0
+        Ct = 0
+
+        ' Find "(Balance forward"
+        For i = searchStart To lastRow
+            If InStr(1, ws.Cells(i, "A").Value, "(Balance forward", vbTextCompare) > 0 Then
+                Cb = i
+                Exit For
+            End If
+        Next i
+
+        If Cb = 0 Then Exit Do
+
+        ' Find "Totals for" after Balance forward
+        For i = Cb + 1 To lastRow
+            If InStr(1, ws.Cells(i, "A").Value, "Totals for", vbTextCompare) > 0 Then
+                Ct = i
+                Exit For
+            End If
+        Next i
+
+        If Ct > Cb + 1 Then
             ws.Rows(Cb + 1 & ":" & Ct - 1).Group
-            
-            ' Reset markers to find next instance
-            Cb = 0
-            Ct = 0
-            
         End If
-        
-    Next i
-    
+
+        searchStart = Ct + 1
+
+    Loop
+
+    '-----------------------------------
+    ' Collapse all outline groups
+    '-----------------------------------
+    ws.Outline.ShowLevels RowLevels:=1
+
+    '-----------------------------------
+    ' Apply comma style to columns
+    '-----------------------------------
+    ws.Columns("I:I").NumberFormat = "#,##0.00"
+    ws.Columns("J:J").NumberFormat = "#,##0.00"
+    ws.Columns("K:K").NumberFormat = "#,##0.00"
+    ws.Columns("O:O").NumberFormat = "#,##0.00"
+
+    '-----------------------------------
+    ' Apply fill color to M1:M(LR)
+    '-----------------------------------
+    ws.Range("M1:M" & lastRow).Interior.Color = -0.0999786370433668
+
     Application.ScreenUpdating = True
     Application.EnableEvents = True
 
