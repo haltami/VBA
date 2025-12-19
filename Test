@@ -1,55 +1,49 @@
-Sub Group_By_Subtotals_Until_Investment_Total()
+Sub Copy_And_Group_ARF_Analysis()
 
-    Dim ws As Worksheet
-    Set ws = ActiveSheet
-
-    Dim LR As Long          ' Row of "Investment Total"
-    Dim Ct As Long          ' Row of "Subtotal"
-    Dim Cb As Long          ' Current block start
+    Dim wsSource As Worksheet
+    Dim wsNew As Worksheet
+    Dim LR As Long
     Dim r As Long
 
     Application.ScreenUpdating = False
     Application.EnableEvents = False
 
     '--------------------------------------------------
-    ' Find row containing "Investment Total" (LR)
+    ' Copy active worksheet and rename
+    '--------------------------------------------------
+    Set wsSource = ActiveSheet
+    wsSource.Copy After:=wsSource
+    Set wsNew = ActiveSheet
+
+    wsNew.Name = "ARF Analysis"
+
+    '--------------------------------------------------
+    ' Find row containing "ARF Analysis" in Column A
     '--------------------------------------------------
     LR = 0
-    For r = 1 To ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-        If InStr(1, ws.Cells(r, "A").Value, "Investment Total", vbTextCompare) > 0 Then
+    For r = 1 To wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
+        If InStr(1, wsNew.Cells(r, "A").Value, "ARF Analysis", vbTextCompare) > 0 Then
             LR = r
             Exit For
         End If
     Next r
 
     If LR = 0 Then
-        MsgBox "'Investment Total' not found in Column A.", vbExclamation
+        MsgBox "'ARF Analysis' not found in Column A.", vbExclamation
         GoTo CleanExit
     End If
 
     '--------------------------------------------------
-    ' Initialize Cb and loop to group Subtotal blocks
+    ' Group rows 5 through (LR - 1)
     '--------------------------------------------------
-    Cb = 7
-
-    For r = Cb To LR
-
-        If InStr(1, ws.Cells(r, "A").Value, "Subtotal", vbTextCompare) > 0 Then
-            Ct = r
-
-            If Ct > Cb Then
-                ws.Rows(Cb & ":" & Ct - 1).Group
-            End If
-
-            Cb = Ct + 1
-        End If
-
-    Next r
+    If LR > 5 Then
+        wsNew.Rows("5:" & LR - 1).Group
+    End If
 
     '--------------------------------------------------
-    ' Collapse all outline groups
+    ' Collapse all groups
     '--------------------------------------------------
-    ws.Outline.ShowLevels RowLevels:=1
+    wsNew.Outline.ShowLevels RowLevels:=1
 
 CleanExit:
     Application.ScreenUpdating = True
