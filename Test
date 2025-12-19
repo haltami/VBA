@@ -1,52 +1,11 @@
-Sub Copy_And_Group_ARF_Analysis()
+The purpose of the macro is to format a sheet by:
+Freezing panes at row 8.
+Look through column A, find the first cell(Cb) containing the text "(Balance forward" and the first cell(Ct) containing the text "Totals for" and grouping from rows Cb + 1 and Ct - 1
+Loop through column A to group all instances.
+Collapse all groups. 
+Comma style formats for Columns I,J,K, and O.
+Find last row(LR) with text in column A. From Cell M1 to MLR cell color is -0.0999786370433668
 
-    Dim wsSource As Worksheet
-    Dim wsNew As Worksheet
-    Dim LR As Long
-    Dim r As Long
-
-    Application.ScreenUpdating = False
-    Application.EnableEvents = False
-
-    '--------------------------------------------------
-    ' Copy active worksheet and rename
-    '--------------------------------------------------
-    Set wsSource = ActiveSheet
-    wsSource.Copy After:=wsSource
-    Set wsNew = ActiveSheet
-
-    wsNew.Name = "ARF Analysis"
-
-    '--------------------------------------------------
-    ' Find row containing "ARF Analysis" in Column A
-    '--------------------------------------------------
-    LR = 0
-    For r = 1 To wsNew.Cells(wsNew.Rows.Count, "A").End(xlUp).Row
-        If InStr(1, wsNew.Cells(r, "A").Value, "ARF Analysis", vbTextCompare) > 0 Then
-            LR = r
-            Exit For
-        End If
-    Next r
-
-    If LR = 0 Then
-        MsgBox "'ARF Analysis' not found in Column A.", vbExclamation
-        GoTo CleanExit
-    End If
-
-    '--------------------------------------------------
-    ' Group rows 5 through (LR - 1)
-    '--------------------------------------------------
-    If LR > 5 Then
-        wsNew.Rows("5:" & LR - 1).Group
-    End If
-
-    '--------------------------------------------------
-    ' Collapse all groups
-    '--------------------------------------------------
-    wsNew.Outline.ShowLevels RowLevels:=1
-
-CleanExit:
-    Application.ScreenUpdating = True
-    Application.EnableEvents = True
-
-End Sub
+Find the row(LR1) first cell in column A containing the text "Totals for 1". Set cell NLR1="Accounts Receivable:" Do not loop. Stop once cell is found.
+Find the row(LR2) first cell in column A containing the text "Totals for 2". Set cell NLR2="Accounts Payable:" Do not loop. Stop once cell is found.
+Find the row(LR2) first cell in column A containing the text "Totals for 5". Set cell NLR3="Expenses:" Do not loop. Stop once cell is found.
